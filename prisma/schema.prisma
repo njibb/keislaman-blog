@@ -1,0 +1,101 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum TransactionType {
+  IN
+  OUT
+}
+
+enum UserRole {
+  BENDAHARA
+  KETUA
+  PENGAWAS
+}
+
+// ==========================================
+// DATA KEUANGAN & USER (PENGURUS INTI)
+// ==========================================
+
+model Transaction {
+  id          String          @id @default(cuid())
+  date        DateTime
+  description String
+  type        TransactionType
+  amount      Float
+  category    String
+  receiptUrl  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("transactions")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // Password akan di-hash (misal pakai bcrypt)
+  role      UserRole @default(BENDAHARA) // Menggunakan Enum UserRole
+  createdAt DateTime @default(now())
+
+  @@map("users")
+}
+
+// ==========================================
+// DATA KHUSUS DIVISI MARCOMM
+// ==========================================
+
+model Partnership {
+  id        String   @id @default(cuid())
+  instansi  String
+  kategori  String   // Sponsor, Donatur, Relasi
+  status    String   // Target, Proposal Dikirim, Follow Up, Deal, Ditolak
+  pic       String
+  nominal   String
+  createdAt DateTime @default(now())
+
+  @@map("partnerships")
+}
+
+model VipGuest {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  jabatan   String
+  status    String   @default("Belum Dikirim") // Opsi: Belum Dikirim, Dikirim, Konfirmasi Hadir, Tidak Hadir
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// DATA KHUSUS DIVISI KEISLAMAN
+// ==========================================
+
+model IslamicActivity {
+  id              Int      @id @default(autoincrement())
+  kegiatan        String   
+  tanggal         String   
+  status          String   @default("Upcoming") // Upcoming, Selesai, Batal
+  mc              String   @default("-")        // Petugas MC
+  penceramah      String   @default("-")        // Pemimpin Tahlil / Penceramah
+  petugas         String   // Petugas Konsumsi
+  konsumsi        String   @default("-")
+  budget          Int      @default(400000)
+  pengeluaran     Int      @default(0)
+  kehadiran       Int      @default(0)
+  transactionId   String?  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("islamic_activities")
+}
