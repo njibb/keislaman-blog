@@ -32,8 +32,10 @@ export default function KeislamanTracker() {
     fetchActivities();
   }, []);
 
-  // KALKULASI STATS TOTAL (TETAP MENGHITUNG KESELURUHAN DATA)
-  const totalSisaBudget = activities.reduce((acc, curr) => acc + (curr.budget - curr.pengeluaran), 0);
+  // KALKULASI STATS TOTAL (HANYA MENGHITUNG YANG STATUSNYA "SELESAI")
+  const totalSisaBudget = activities
+    .filter(act => act.status === 'Selesai')
+    .reduce((acc, curr) => acc + (curr.budget - curr.pengeluaran), 0);
   
   // LOGIKA FILTER GRAFIK
   const completedActivities = [...activities].reverse().filter(act => act.status === 'Selesai');
@@ -62,7 +64,6 @@ export default function KeislamanTracker() {
 
   const currentMonthActivities = activities.filter((act) => {
     const parts = act.tanggal.split(' ');
-    // Asumsi format tanggal adalah "DD Bulan YYYY", misal: "09 Juni 2026"
     if (parts.length >= 3) {
       return parts[1].toLowerCase() === currentMonthString.toLowerCase() && parts[2] === currentYearString;
     }
@@ -213,8 +214,17 @@ export default function KeislamanTracker() {
                           {act.kegiatan === 'Latihan Hadroh' ? '-' : (act.konsumsi || '-')}
                         </td>
                         <td className="p-5 text-center">
-                          <div className="font-black text-xs text-amber-600">Rp {sisa.toLocaleString('id-ID')}</div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">Terpakai: Rp {act.pengeluaran.toLocaleString('id-ID')}</div>
+                          {/* LOGIKA SISA BUDGET TAMPIL KALAU SUDAH SELESAI */}
+                          {act.status === 'Selesai' ? (
+                            <>
+                              <div className="font-black text-xs text-amber-600">Rp {sisa.toLocaleString('id-ID')}</div>
+                              <div className="text-[10px] text-slate-400 mt-0.5">Terpakai: Rp {act.pengeluaran.toLocaleString('id-ID')}</div>
+                            </>
+                          ) : act.status === 'Batal' ? (
+                            <span className="text-[10px] font-bold text-slate-400">Dibatalkan</span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-slate-400 italic">Menunggu Acara</span>
+                          )}
                         </td>
                       </tr>
                     );
